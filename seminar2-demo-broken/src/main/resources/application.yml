@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: seminar2-demo
+  profiles:
+    active: dev
+
+server:
+  port: 8080
