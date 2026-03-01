@@ -1,6 +1,0 @@
-server:
-  port: 8443
-
-logging:
-  level:
-    ru.bmstu.yabd: INFO
