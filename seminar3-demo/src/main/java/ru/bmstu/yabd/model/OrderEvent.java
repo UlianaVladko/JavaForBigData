@@ -4,5 +4,7 @@ public record OrderEvent(
     String orderId,
     String product,
     int quantity,
-    double price
+    double price,
+    boolean paid,
+    long timestamp
 ) {}

@@ -3,6 +3,8 @@ package ru.bmstu.yabd.consumer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 import ru.bmstu.yabd.model.OrderEvent;
 
@@ -16,8 +18,11 @@ public class OrderConsumer {
     private final AtomicInteger processedCount = new AtomicInteger(0);
 
     @KafkaListener(topics = "orders", groupId = "order-processor")
-    public void listen(OrderEvent event) {
-        log.info("Order received: {}", event);
-        processedCount.incrementAndGet();
+    public void listen(OrderEvent event,
+                       @Header(KafkaHeaders.RECEIVED_PARTITION) int partition) {
+        if (!event.paid()) {
+            processedCount.incrementAndGet();
+            log.info("Order received: orderId={} partition={} event={}", event.orderId(), partition, event);
+        }
     }
 }

@@ -14,12 +14,12 @@ public class OrderProducer {
     private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
 
     public void send(OrderEvent event) {
-        log.info("Sending to Kafka topic 'orders': {}", event);
-        kafkaTemplate.send("orders", event.orderId(), event);
-    }
-
-    public void sendPayment(OrderEvent event) {
-        log.info("Sending to Kafka topic 'payments': {}", event);
-        kafkaTemplate.send("payments", event.orderId(), event);
+        String key = event.orderId();
+        if (!event.paid()) {
+            log.info("Sending ORDER event to Kafka | key = {} | event = {}", key, event);
+        } else {
+            log.info("Sending PAYMENT event to Kafka | key = {} | event = {}", key, event);
+        }
+        kafkaTemplate.send("orders", key, event);
     }
 }
