@@ -27,18 +27,18 @@ public class StreamConfig {
                 "spring.json.value.default.type", "ru.bmstu.yabd.model.OrderEvent"
         ), false);
 
-    // TODO 6: Внутри метода создайте KStream из топика "orders"
-    //         с правильными Serde (Serdes.String(), JsonSerde<OrderEvent>)
+        // TODO 6: Внутри метода создайте KStream из топика "orders"
+        //         с правильными Serde (Serdes.String(), JsonSerde<OrderEvent>)
 
         KStream<String, OrderEvent> stream = builder.stream(
                 "orders",
                 Consumed.with(Serdes.String(), orderSerde)
         );
 
-    // TODO 7: Постройте цепочку: filter(price > 0) → groupBy(product) →
-    //         windowedBy(5 минут) → count() → toStream() → map() → to("product-counts")
+        // TODO 7: Постройте цепочку: filter(price > 0) → groupBy(product) →
+        //         windowedBy(5 минут) → count() → toStream() → map() → to("product-counts")
 
-    // TODO 8: Не забудьте Materialized.as("product-window-counts") для state store
+        // TODO 8: Не забудьте Materialized.as("product-window-counts") для state store
 
         stream
                 .filter((key, order) -> order != null && order.price() > 0)
