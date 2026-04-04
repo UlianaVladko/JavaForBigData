@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f6fa;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 6px 0;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #2f80ed;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1c6ed8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        .fraud {
+            background-color: #ffdddd;
+        }
+
+        .ok {
+            background-color: #ddffdd;
+        }
+
+        .kpi {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .kpi-card h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .kpi-card div {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .trend-low {
+            background-color: #f0f0f0;
+        }
+
+        .trend-medium {
+            background-color: #fff3cd;
+        }
+
+        .trend-high {
+            background-color: #d4edda;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1 th:text="${title}">Dashboard</h1>
+
+<div class="kpi">
+    <div class="kpi-card">
+        <h3>Fraud Orders</h3>
+        <div id="fraudCount">0</div>
+    </div>
+
+    <div class="kpi-card">
+        <h3>Trending Products</h3>
+        <div id="trendingCount">0</div>
+    </div>
+
+    <div class="kpi-card">
+        <h3>Total Revenue</h3>
+        <div id="revenueTotal">0</div>
+    </div>
+</div>
+
+<div class="grid">
+
+    <!-- CREATE ORDER -->
+    <div class="card">
+        <h2>Create Order</h2>
+        <input id="orderId" placeholder="Order ID">
+        <input id="product" placeholder="Product">
+        <input id="quantity" type="number" placeholder="Quantity">
+        <input id="price" type="number" placeholder="Price">
+        <input id="customerId" placeholder="Customer ID">
+        <button onclick="createOrder()">Send Order</button>
+    </div>
+
+    <!-- CREATE CUSTOMER -->
+    <div class="card">
+        <h2>Create Customer</h2>
+        <input id="custId" placeholder="Customer ID">
+        <input id="custName" placeholder="Name">
+        <input id="custEmail" placeholder="Email">
+        <button onclick="createCustomer()">Save Customer</button>
+    </div>
+
+    <!-- FRAUD -->
+    <div class="card">
+        <h2>Fraud Orders</h2>
+        <button onclick="loadFraud()">Refresh</button>
+        <table>
+            <thead>
+            <tr>
+                <th>Order</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Customer</th>
+                <th>Severity</th>
+            </tr>
+            </thead>
+            <tbody id="fraudTable"></tbody>
+        </table>
+    </div>
+
+    <!-- TRENDING -->
+    <div class="card">
+        <h2>Trending Products</h2>
+        <button onclick="loadTrending()">Refresh</button>
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Count</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody id="trendingTable"></tbody>
+        </table>
+    </div>
+
+    <!-- REVENUE -->
+    <div class="card">
+        <h2>Revenue</h2>
+        <button onclick="loadRevenue()">Refresh</button>
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Revenue</th>
+            </tr>
+            </thead>
+            <tbody id="revenueTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    async function createOrder() {
+        const order = {
+            orderId: document.getElementById("orderId").value,
+            product: document.getElementById("product").value,
+            quantity: parseInt(document.getElementById("quantity").value),
+            price: parseFloat(document.getElementById("price").value)
+        };
+
+        const customerId = document.getElementById("customerId").value;
+
+        const res = await fetch(`/api/orders?customerId=${customerId}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(order)
+        });
+
+        alert("Order sent");
+    }
+
+    async function createCustomer() {
+        const customer = {
+            customerId: document.getElementById("custId").value,
+            name: document.getElementById("custName").value,
+            email: document.getElementById("custEmail").value
+        };
+
+        await fetch(`/api/customers`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(customer)
+        });
+
+        alert("Customer saved");
+    }
+
+    async function loadFraud() {
+        const res = await fetch('/api/stats/fraud');
+        const data = await res.json();
+
+        const table = document.getElementById("fraudTable");
+        table.innerHTML = "";
+
+        const values = Object.values(data);
+
+        document.getElementById("fraudCount").innerText = values.length;
+
+        values.forEach(order => {
+
+            const severity = order.price > 5000 ? "HIGH" : "MEDIUM";
+
+            const row = `
+                <tr class="fraud">
+                    <td>${order.orderId}</td>
+                    <td>${order.product}</td>
+                    <td>${order.price}</td>
+                    <td>${order.customerName}</td>
+                    <td>${severity}</td>
+                </tr>
+            `;
+            table.innerHTML += row;
+        });
+    }
+
+    async function loadTrending() {
+        const res = await fetch('/api/stats/trending');
+        const data = await res.json();
+
+        const table = document.getElementById("trendingTable");
+        table.innerHTML = "";
+
+        const sorted = Object.entries(data)
+            .sort((a, b) => b[1].count - a[1].count)
+            .slice(0, 5);
+
+        document.getElementById("trendingCount").innerText = sorted.length;
+
+        sorted.forEach(([product, info], index) => {
+            let cls = "trend-low";
+            if (info.count > 5) cls = "trend-high";
+            else if (info.count > 2) cls = "trend-medium";
+
+            const row = `
+                <tr class="${cls}">
+                    <td>#${index + 1}</td>
+                    <td>${product}</td>
+                    <td>${info.count}</td>
+                    <td>${info.status}</td>
+                </tr>
+            `;
+            table.innerHTML += row;
+        });
+    }
+
+    async function loadRevenue() {
+        const res = await fetch('/api/stats/revenue');
+        const data = await res.json();
+
+        const table = document.getElementById("revenueTable");
+        table.innerHTML = "";
+
+        let total = 0;
+
+        const sorted = Object.entries(data)
+            .sort((a, b) => b[1] - a[1]);
+
+        sorted.forEach(([product, revenue], index) => {
+            total += revenue;
+
+            const row = `
+                <tr>
+                    <td>#${index + 1}</td>
+                    <td>${product}</td>
+                    <td>${revenue.toFixed(2)}</td>
+                </tr>
+            `;
+            table.innerHTML += row;
+        });
+
+        document.getElementById("revenueTotal").innerText = total.toFixed(2);
+    }
+
+    // автообновление
+    setInterval(() => {
+        loadFraud();
+        loadTrending();
+        loadRevenue();
+    }, 5000);
+
+</script>
+
+</body>
+</html>
