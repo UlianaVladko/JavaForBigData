@@ -13,13 +13,27 @@ CREATE STREAM orders_raw (
   totalAmount DOUBLE,
   createdAt BIGINT
 ) WITH (
-  kafka_topic = 'orders',
+  kafka_topic = 'orders.v1',
   value_format = 'JSON',
   timestamp = 'createdAt'
 );
 
--- TODO: Processing stream (нормализация)
-CREATE STREAM orders_enriched AS
+CREATE STREAM orders_v2 (
+  orderId VARCHAR,
+  product VARCHAR,
+  quantity INT,
+  price DOUBLE,
+  totalAmount DOUBLE,
+  createdAt BIGINT,
+  version INT,
+  discountPrice DOUBLE
+) WITH (
+  kafka_topic = 'orders.v2',
+  value_format = 'JSON'
+);
+
+-- TODO: Filtered stream
+CREATE STREAM orders_clean AS
 SELECT
   orderId,
   product,
@@ -30,11 +44,23 @@ SELECT
 FROM orders_raw
 EMIT CHANGES;
 
--- TODO: Бизнес-фильтр
+CREATE STREAM orders_enriched_v2 AS
+SELECT
+  orderId,
+  product,
+  quantity,
+  price,
+  totalAmount,
+  totalAmount * 0.9 AS discounted_total,
+  createdAt
+FROM orders_clean
+EMIT CHANGES;
+
+-- TODO: Business stream (real-time filter)
 CREATE STREAM high_value_orders AS
 SELECT *
-FROM orders_enriched
-WHERE totalAmount > 1000
+FROM orders_clean
+WHERE totalAmount > 6000
 EMIT CHANGES;
 
 -- TODO 11: Создайте TABLE product_stats с агрегацией по продуктам
@@ -48,7 +74,7 @@ SELECT
   SUM(quantity) AS total_items,
   SUM(totalAmount) AS revenue,
   AVG(totalAmount) AS avg_order_value
-FROM orders_enriched
+FROM orders_clean
 GROUP BY product
 EMIT CHANGES;
 
@@ -61,7 +87,7 @@ SELECT
   product,
   COUNT(*) AS order_count,
   SUM(totalAmount) AS revenue
-FROM orders_enriched
+FROM orders_clean
 WINDOW TUMBLING (SIZE 1 HOUR, GRACE PERIOD 10 MINUTES)
 GROUP BY product
 EMIT CHANGES;

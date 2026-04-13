@@ -24,6 +24,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody @Valid OrderRequest request) {
         producer.send(request);
+        producer.sendV2(request);
         return ResponseEntity.ok(Map.of(
                 "status", "sent",
                 "orderId", request.orderId()

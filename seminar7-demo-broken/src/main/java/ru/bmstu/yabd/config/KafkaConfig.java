@@ -11,7 +11,17 @@ public class KafkaConfig {
     // Подсказка: используйте new NewTopic("orders", 3, (short) 1)
     @Bean
     public NewTopic ordersTopic() {
-        return new NewTopic("orders", 3, (short) 1);
+        return new NewTopic("orders.v1", 3, (short) 1);
     }
+
+    @Bean
+    public NewTopic ordersV2Topic() {
+        return new NewTopic("orders.v2", 3, (short) 1);
+    }
+
+//    @Bean
+//    public NewTopic ordersDlqTopic() {
+//        return new NewTopic("orders.dlq", 1, (short) 1);
+//    }
 
 }

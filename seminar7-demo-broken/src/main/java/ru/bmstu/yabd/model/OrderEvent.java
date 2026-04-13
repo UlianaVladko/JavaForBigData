@@ -8,5 +8,6 @@ public record OrderEvent(
         int quantity,
         double price,
         double totalAmount,
-        long createdAt
+        long createdAt,
+        int version
 ) {}
